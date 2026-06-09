@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <meta name="theme-color" content="#023e8a" />
+  <title>Slovíčka</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Slovíčka" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- LEARN TAB -->
+    <section class="tab tab--learn is-active" data-tab="learn">
+      <header class="topbar">
+        <div class="stat">
+          <div class="stat__icon" aria-hidden="true">🔥</div>
+          <div class="stat__body">
+            <div class="stat__label">Streak</div>
+            <div class="stat__value"><span id="streakValue">0</span> <span class="stat__unit">dní</span></div>
+          </div>
+        </div>
+        <div class="stat stat--goal">
+          <div class="stat__body">
+            <div class="stat__label">Dnešní cíl</div>
+            <div class="stat__value"><span id="goalProgress">0</span> / <span id="goalTotal">10</span></div>
+          </div>
+          <button class="iconbtn" id="editGoalBtn" aria-label="Upravit cíl">✎</button>
+        </div>
+      </header>
+
+      <div class="progressbar">
+        <div class="progressbar__fill" id="goalBar"></div>
+      </div>
+
+      <main class="learn-main">
+        <div class="card-stage" id="cardStage">
+          <article class="flashcard" id="flashcard">
+            <div class="flashcard__half flashcard__half--top">
+              <div class="flashcard__lang" id="frontLang">EN</div>
+              <div class="flashcard__word" id="frontWord">—</div>
+            </div>
+            <div class="flashcard__divider" aria-hidden="true"></div>
+            <div class="flashcard__half flashcard__half--bottom">
+              <div class="flashcard__placeholder" id="bottomPlaceholder">?</div>
+              <div class="flashcard__answer" id="bottomAnswer" hidden>
+                <div class="flashcard__lang" id="backLang">CS</div>
+                <div class="flashcard__word" id="backWord">—</div>
+              </div>
+            </div>
+          </article>
+
+          <div class="empty" id="emptyState" hidden>
+            <div class="empty__emoji">🎉</div>
+            <div class="empty__title">Hotovo na dnes!</div>
+            <div class="empty__text">Žádné karty k opakování. Vrať se zítra.</div>
+          </div>
+        </div>
+
+        <div class="actions" id="actions">
+          <button class="btn btn--primary btn--block" id="revealBtn">Ukázat</button>
+          <div class="rate" id="rateButtons" hidden>
+            <button class="btn btn--rate btn--bad" data-grade="0">
+              <span class="rate__label">Neumím</span>
+              <span class="rate__when" data-when="0">—</span>
+            </button>
+            <button class="btn btn--rate btn--meh" data-grade="1">
+              <span class="rate__label">Meh</span>
+              <span class="rate__when" data-when="1">—</span>
+            </button>
+            <button class="btn btn--rate btn--good" data-grade="2">
+              <span class="rate__label">Umím</span>
+              <span class="rate__when" data-when="2">—</span>
+            </button>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- CARDS TAB -->
+    <section class="tab tab--cards" data-tab="cards">
+      <header class="topbar topbar--simple">
+        <h1 class="title">Karty</h1>
+        <button class="iconbtn iconbtn--solid" id="addCardBtn" aria-label="Přidat kartu">＋</button>
+      </header>
+
+      <div class="stats-grid">
+        <div class="kpi"><div class="kpi__value" id="kpiTotal">0</div><div class="kpi__label">Celkem</div></div>
+        <div class="kpi"><div class="kpi__value" id="kpiMastered">0</div><div class="kpi__label">Naučeno</div></div>
+        <div class="kpi"><div class="kpi__value" id="kpiDue">0</div><div class="kpi__label">K opakování</div></div>
+      </div>
+
+      <div class="infographic">
+        <div class="infographic__head">
+          <h2>Stav znalostí</h2>
+        </div>
+        <div class="bar" id="masteryBar"></div>
+        <ul class="legend">
+          <li><span class="dot dot--new"></span>Nové<span class="legend__val" id="legNew">0</span></li>
+          <li><span class="dot dot--learning"></span>Učím se<span class="legend__val" id="legLearning">0</span></li>
+          <li><span class="dot dot--young"></span>Krátký interval<span class="legend__val" id="legYoung">0</span></li>
+          <li><span class="dot dot--mature"></span>Naučeno<span class="legend__val" id="legMature">0</span></li>
+        </ul>
+      </div>
+
+      <div class="list-head">
+        <h2>Všechny karty</h2>
+        <input class="search" id="searchInput" type="search" placeholder="Hledat…" />
+      </div>
+      <ul class="cards-list" id="cardsList"></ul>
+    </section>
+
+    <!-- BOTTOM TABBAR -->
+    <nav class="tabbar" role="tablist">
+      <button class="tabbar__btn is-active" data-target="learn" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11a3 3 0 0 1 3 3v11l-3-2-3 2-3-2-3 2-2-1V5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span>Učení</span>
+      </button>
+      <button class="tabbar__btn" data-target="cards" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="7" y="3" width="14" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span>Karty</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- GOAL MODAL -->
+  <div class="modal" id="goalModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__sheet" role="dialog" aria-modal="true" aria-labelledby="goalTitle">
+      <div class="modal__handle"></div>
+      <h2 class="modal__title" id="goalTitle">Denní cíl</h2>
+      <p class="modal__sub">Kolik karet chceš zvládnout každý den?</p>
+      <div class="stepper">
+        <button class="stepper__btn" id="goalMinus" aria-label="Snížit">−</button>
+        <div class="stepper__value"><span id="goalEditValue">10</span><span class="stepper__unit">karet</span></div>
+        <button class="stepper__btn" id="goalPlus" aria-label="Zvýšit">+</button>
+      </div>
+      <div class="preset">
+        <button data-preset="5">5</button>
+        <button data-preset="10">10</button>
+        <button data-preset="20">20</button>
+        <button data-preset="30">30</button>
+        <button data-preset="50">50</button>
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" data-close>Zrušit</button>
+        <button class="btn btn--primary" id="goalSave">Uložit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD DETAIL MODAL -->
+  <div class="modal" id="detailModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__sheet" role="dialog" aria-modal="true">
+      <div class="modal__handle"></div>
+      <div class="detail__head">
+        <div>
+          <div class="detail__front" id="detailFront">—</div>
+          <div class="detail__back" id="detailBack">—</div>
+        </div>
+        <span class="detail__state" id="detailState">—</span>
+      </div>
+
+      <dl class="detail__grid">
+        <div><dt>Stav</dt><dd id="detStateText">—</dd></div>
+        <div><dt>Interval</dt><dd id="detInterval">—</dd></div>
+        <div><dt>Ease factor</dt><dd id="detEase">—</dd></div>
+        <div><dt>Splatnost</dt><dd id="detDue">—</dd></div>
+        <div><dt>Opakování</dt><dd id="detReps">—</dd></div>
+        <div><dt>Selhání</dt><dd id="detLapses">—</dd></div>
+        <div><dt>Krok</dt><dd id="detStep">—</dd></div>
+        <div><dt>Poslední</dt><dd id="detLast">—</dd></div>
+      </dl>
+
+      <div class="modal__actions">
+        <button class="btn btn--ghost" id="detDelete">Smazat</button>
+        <button class="btn btn--primary" data-close>Hotovo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD CARD MODAL -->
+  <div class="modal" id="addModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__sheet" role="dialog" aria-modal="true">
+      <div class="modal__handle"></div>
+      <h2 class="modal__title">Nová karta</h2>
+      <label class="field">
+        <span>Přední strana (EN)</span>
+        <input id="newFront" type="text" placeholder="apple" autocomplete="off" />
+      </label>
+      <label class="field">
+        <span>Zadní strana (CS)</span>
+        <input id="newBack" type="text" placeholder="jablko" autocomplete="off" />
+      </label>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" data-close>Zrušit</button>
+        <button class="btn btn--primary" id="addSave">Přidat</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- Sign-in overlay: shown until user is authenticated -->
+  <div class="signin" id="signinOverlay" hidden>
+    <div class="signin__sheet">
+      <div class="signin__emoji">📚</div>
+      <h1 class="signin__title">Slovíčka</h1>
+      <p class="signin__sub">Přihlas se a tvůj postup se bude průběžně ukládat do cloudu.</p>
+      <button class="btn btn--primary btn--block" id="signinBtn">
+        Přihlásit přes Google
+      </button>
+      <p class="signin__legal">Data jsou navázaná jen na tvůj účet.</p>
+    </div>
+  </div>
+
+  <!-- Tiny sync indicator -->
+  <div class="syncbar">
+    <span id="syncStatus" data-status="signedout">⊘ no account</span>
+    <button id="signoutBtn" class="syncbar__btn" title="Odhlásit">↪</button>
+  </div>
+
+  <!-- Firebase v10 compat (no build step required) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script src="app.js?v=3"></script>
+  <script src="cloud.js?v=1"></script>
+
+  <!-- Register service worker for offline app shell -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
