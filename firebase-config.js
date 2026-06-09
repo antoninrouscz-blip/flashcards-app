@@ -19,10 +19,10 @@
 //    (např. tvuj-username.github.io)
 
 window.FIREBASE_CONFIG = {
-  apiKey: "PASTE_API_KEY_HERE",
-  authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
-  projectId: "PASTE_PROJECT_ID",
-  storageBucket: "PASTE_PROJECT_ID.appspot.com",
-  messagingSenderId: "PASTE_SENDER_ID",
-  appId: "PASTE_APP_ID",
+  apiKey: "AIzaSyAra58Bn67dO-3qIc3XmVfvkAWlHkqyGL8",
+  authDomain: "flashcards-7dab4.firebaseapp.com",
+  projectId: "flashcards-7dab4",
+  storageBucket: "flashcards-7dab4.firebasestorage.app",
+  messagingSenderId: "1049333941070",
+  appId: "1:1049333941070:web:db8bb5e3605ce2ab59541f",
 };
