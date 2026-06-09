@@ -1,12 +1,12 @@
 // Bump CACHE_VERSION on every release to bust old caches.
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `slovicka-shell-${CACHE_VERSION}`;
 const APP_SHELL = [
   './',
   'index.html',
   'styles.css',
   'app.js?v=3',
-  'cloud.js?v=1',
+  'cloud.js?v=2',
   'firebase-config.js',
   'manifest.json',
   'icons/icon-192.png',

@@ -64,16 +64,20 @@
     if (unsub) { unsub(); unsub = null; }
     window.__cloud.user = user || null;
 
+    const footer = document.getElementById('accountFooter');
+
     if (!user) {
       document.getElementById('signinOverlay').hidden = false;
       document.getElementById('syncStatus').dataset.status = 'signedout';
       document.getElementById('syncStatus').textContent = '⊘ no account';
+      if (footer) footer.hidden = true;
       return;
     }
 
     document.getElementById('signinOverlay').hidden = true;
     const emailEl = document.getElementById('signedInEmail');
     if (emailEl) emailEl.textContent = user.email || user.displayName || user.uid.slice(0, 8);
+    if (footer) footer.hidden = false;
 
     document.getElementById('syncStatus').dataset.status = 'saving';
     document.getElementById('syncStatus').textContent = '↑ syncing';

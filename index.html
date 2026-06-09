@@ -113,6 +113,11 @@
         <input class="search" id="searchInput" type="search" placeholder="Hledat…" />
       </div>
       <ul class="cards-list" id="cardsList"></ul>
+
+      <footer class="account-footer" id="accountFooter" hidden>
+        <span class="account-footer__email" id="signedInEmail">—</span>
+        <a class="account-footer__link" id="signoutBtn" role="button">Odhlásit</a>
+      </footer>
     </section>
 
     <!-- BOTTOM TABBAR -->
@@ -221,10 +226,9 @@
     </div>
   </div>
 
-  <!-- Tiny sync indicator -->
+  <!-- Tiny sync indicator (only shows when offline / signedout) -->
   <div class="syncbar">
     <span id="syncStatus" data-status="signedout">⊘ no account</span>
-    <button id="signoutBtn" class="syncbar__btn" title="Odhlásit">↪</button>
   </div>
 
   <!-- Firebase v10 compat (no build step required) -->
@@ -234,7 +238,7 @@
   <script src="firebase-config.js"></script>
 
   <script src="app.js?v=3"></script>
-  <script src="cloud.js?v=1"></script>
+  <script src="cloud.js?v=2"></script>
 
   <!-- Register service worker for offline app shell -->
   <script>
