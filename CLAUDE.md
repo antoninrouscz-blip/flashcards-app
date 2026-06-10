@@ -24,7 +24,7 @@ python3 -m http.server 3457   # http://localhost:3457
 - **sw.js** — service worker, cachuje app shell pro offline.
 - **manifest.json** — PWA manifest (Add to Home Screen).
 - **styles.css** — styly.
-- **icons/** — `ohen.png` (streak/oheň), `tuzka.png` (edit cíle), `icon-*.png` (PWA ikony).
+- **icons/** — `icon-*.png` (PWA ikony). Streak a edit cíle používají emoji (🔥, ✅) přímo v `index.html` — `ohen.png` a `tuzka.png` ve složce zůstaly z předchozí verze a nejsou nikde referencované (klidně smazat).
 
 ## Datový model
 
@@ -73,7 +73,13 @@ Service worker cachuje app shell **cache-first**. Bez verzování by uživatelé
 - **Změna `cloud.js`** → totéž s `cloud.js?v=N`.
 - **Změna `styles.css`, obrázků nebo jiných assetů** → stačí zvýšit `CACHE_VERSION` v `sw.js` (smaže starou cache, vše se přefetchuje).
 
-`CACHE_VERSION` je teď `v8`. Bump = `v9`, atd.
+`CACHE_VERSION` je teď `v10`. Bump = `v11`, atd.
+
+## UI layout pravidla
+
+- **Učení tab je zamčený do výšky viewportu — nesmí scrollovat.** `styles.css` používá `html/body:has(.tab--learn.is-active) { overflow: hidden; height: 100dvh }` a `.tab--learn.is-active` je `flex column` s `height: 100dvh`. Karta (`.card-stage` + `.flashcard`) má `flex: 1; min-height: 0`, aby se přizpůsobila zbylému místu. **Když přidáváš do Učení nový element nad/pod kartu, dej pozor, ať se karta dál vejde** — žádné `min-height` v pixelech na `.flashcard` ani na rodičích, jinak na malém telefonu vyteče.
+- **Karty tab scrolluje normálně** (potřebuje to kvůli seznamu karet) — `:has()` pravidlo se aktivuje jen na Učení.
+- **Modal close button (`.modal__close`)** — křížek v pravém horním rohu `modal__sheet`. Má `data-close`, takže existující handler ([app.js:920](app.js:920)) ho zavře. Pokud ho přidáš do jiného modalu, jeho `detail__head` / hlavička potřebuje `padding-right: 44px`, aby pod X nepodlézal obsah.
 
 ## Gotchas
 
