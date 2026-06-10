@@ -160,6 +160,94 @@ input { font: inherit; }
   background-size: 4px 4px;
 }
 
+/* ---------- Mode toggle (Psát) ---------- */
+.mode-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 -4px;
+}
+.mode-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  background: #ffffff;
+  border: var(--border);
+  font-size: 13px; font-weight: 700;
+  color: var(--primary-ink);
+  box-shadow: var(--shadow-soft);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  transition: transform .05s, box-shadow .05s, background .15s;
+}
+.mode-toggle:active { transform: translate(2px, 2px); box-shadow: 0 0 0 0 var(--line); }
+.mode-toggle__dot {
+  width: 12px; height: 12px;
+  background: #ffffff;
+  border: 2px solid var(--line);
+  display: inline-block;
+}
+.mode-toggle[aria-pressed="true"] {
+  background: var(--primary);
+  color: #ffffff;
+}
+.mode-toggle[aria-pressed="true"] .mode-toggle__dot {
+  background: var(--accent-yellow);
+  border-color: var(--accent-yellow-deep);
+}
+
+/* ---------- Type-to-answer form ---------- */
+.type-form {
+  display: flex; gap: 8px;
+  width: 100%;
+}
+.type-form[hidden] { display: none !important; }
+#typeInput {
+  flex: 1;
+  background: #ffffff;
+  border: var(--border);
+  color: var(--text);
+  padding: 14px 16px;
+  outline: none;
+  font-size: 20px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  font-family: inherit;
+  min-width: 0;
+}
+#typeInput:focus { background: var(--accent-yellow); }
+.type-form__submit {
+  flex: 0 0 56px;
+  padding: 14px 0;
+  font-size: 22px;
+}
+
+/* ---------- Typed-answer feedback inside flashcard ---------- */
+.flashcard__typed {
+  margin-top: 14px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  border: 2px solid var(--line);
+  background: var(--accent-yellow);
+  box-shadow: 2px 2px 0 0 var(--line);
+  font-size: 16px;
+  font-weight: 600;
+  max-width: 100%;
+}
+.flashcard__typed[data-match="yes"] {
+  background: #d8f1e1;
+  border-color: var(--good);
+}
+.flashcard__typed[data-match="no"] {
+  background: #fde0e0;
+  border-color: var(--bad);
+}
+.flashcard__typed-icon {
+  font-size: 18px; font-weight: 800;
+  line-height: 1;
+}
+.flashcard__typed-text {
+  word-break: break-word;
+}
+
 /* ---------- Learn ---------- */
 .learn-main {
   display: flex; flex-direction: column;

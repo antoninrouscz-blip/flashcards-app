@@ -38,6 +38,13 @@
         <div class="progressbar__fill" id="goalBar"></div>
       </div>
 
+      <div class="mode-row">
+        <button class="mode-toggle" id="typingToggle" type="button" aria-pressed="false">
+          <span class="mode-toggle__dot"></span>
+          Psát
+        </button>
+      </div>
+
       <main class="learn-main">
         <div class="card-stage" id="cardStage">
           <article class="flashcard" id="flashcard">
@@ -51,6 +58,10 @@
               <div class="flashcard__answer" id="bottomAnswer" hidden>
                 <div class="flashcard__lang" id="backLang">CS</div>
                 <div class="flashcard__word" id="backWord">—</div>
+                <div class="flashcard__typed" id="bottomTyped" hidden>
+                  <span class="flashcard__typed-icon" id="typedIcon">✓</span>
+                  <span class="flashcard__typed-text" id="typedText"></span>
+                </div>
               </div>
             </div>
           </article>
@@ -63,6 +74,20 @@
         </div>
 
         <div class="actions" id="actions">
+          <form class="type-form" id="typeForm" hidden>
+            <input
+              type="text"
+              id="typeInput"
+              placeholder="Napiš překlad…"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              inputmode="text"
+              enterkeyhint="done"
+            />
+            <button type="submit" class="btn btn--primary type-form__submit" aria-label="Zkontrolovat">✓</button>
+          </form>
           <button class="btn btn--primary btn--block" id="revealBtn">Ukázat</button>
           <div class="rate" id="rateButtons" hidden>
             <button class="btn btn--rate btn--bad" data-grade="0">
@@ -237,7 +262,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
   <script src="cloud.js?v=2"></script>
 
   <!-- Register service worker for offline app shell -->

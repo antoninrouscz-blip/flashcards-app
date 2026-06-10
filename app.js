@@ -47,6 +47,9 @@ function defaultState() {
     // FIFO queue of card IDs that were graded "Neumím" today
     // and need to be re-shown within the same session
     sessionRetry: [],
+    // Typing mode: when true, user must type the translation
+    // before seeing the answer (instead of just clicking Ukázat)
+    typingMode: false,
     cards: SEED_CARDS.map(([f, b], i) => ({
       id: i + 1,
       front: f,
@@ -87,6 +90,7 @@ function loadState() {
       delete c.ef;
     }
     if (!Array.isArray(s.sessionRetry)) s.sessionRetry = [];
+    if (typeof s.typingMode !== 'boolean') s.typingMode = false;
     // day rollover
     const today = startOfDay();
     if (s.todayKey !== today) {
@@ -368,6 +372,7 @@ function renderTopbar() {
 
 let currentCard = null;
 let isFlipped = false;
+let typedAnswer = ''; // what user typed in typing mode for current card
 
 function pickCard() {
   const due = dueCards();
@@ -380,7 +385,20 @@ function pickCard() {
     currentCard = null;
   }
   isFlipped = false;
+  typedAnswer = '';
   return currentCard;
+}
+
+// Normalize for forgiving comparison: trim, lowercase, strip diacritics.
+function normalizeForCompare(s) {
+  return (s || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+}
+function isTypedCorrect(typed, correct) {
+  return normalizeForCompare(typed) === normalizeForCompare(correct);
 }
 
 function renderFlashcard() {
@@ -389,6 +407,8 @@ function renderFlashcard() {
   const actions = $('actions');
   const reveal = $('revealBtn');
   const rate = $('rateButtons');
+  const typeForm = $('typeForm');
+  const typeInput = $('typeInput');
 
   if (!currentCard) {
     fc.style.display = 'none';
@@ -412,18 +432,42 @@ function renderFlashcard() {
   $('backLang').textContent = botLang;
   $('backWord').textContent = botWord;
 
-  // bottom half: placeholder until revealed, then answer (no animation)
+  // Bottom half: placeholder until revealed, then answer (no animation)
   $('bottomPlaceholder').hidden = isFlipped;
   $('bottomAnswer').hidden = !isFlipped;
 
-  reveal.hidden = isFlipped;
-  rate.hidden = !isFlipped;
+  // Typed-answer feedback (only when typing mode was used)
+  const typedEl = $('bottomTyped');
+  if (isFlipped && state.typingMode && typedAnswer) {
+    const ok = isTypedCorrect(typedAnswer, botWord);
+    typedEl.hidden = false;
+    typedEl.dataset.match = ok ? 'yes' : 'no';
+    $('typedIcon').textContent = ok ? '✓' : '✗';
+    $('typedText').textContent = typedAnswer;
+  } else {
+    typedEl.hidden = true;
+  }
 
+  // Actions area: either reveal button, typing form, or rate buttons
   if (isFlipped) {
+    reveal.hidden = true;
+    typeForm.hidden = true;
+    rate.hidden = false;
     document.querySelectorAll('.rate__when').forEach(el => {
       const g = parseInt(el.dataset.when, 10);
       el.textContent = previewInterval(currentCard, g);
     });
+  } else if (state.typingMode) {
+    reveal.hidden = true;
+    rate.hidden = true;
+    typeForm.hidden = false;
+    typeInput.value = '';
+    // Focus the input on next tick so mobile keyboard pops up reliably
+    setTimeout(() => { try { typeInput.focus(); } catch {} }, 60);
+  } else {
+    reveal.hidden = false;
+    rate.hidden = true;
+    typeForm.hidden = true;
   }
 }
 
@@ -431,6 +475,21 @@ function flip() {
   if (!currentCard) return;
   isFlipped = true;
   renderFlashcard();
+}
+
+function submitTypedAnswer() {
+  if (!currentCard) return;
+  const val = ($('typeInput').value || '').trim();
+  if (!val) return;
+  typedAnswer = val;
+  isFlipped = true;
+  renderFlashcard();
+}
+
+function syncTypingToggle() {
+  const btn = $('typingToggle');
+  if (!btn) return;
+  btn.setAttribute('aria-pressed', state.typingMode ? 'true' : 'false');
 }
 
 function gradeCurrent(grade) {
@@ -653,6 +712,20 @@ function bind() {
     b.addEventListener('click', () => gradeCurrent(parseInt(b.dataset.grade, 10)));
   });
 
+  // typing mode toggle
+  $('typingToggle').addEventListener('click', () => {
+    state.typingMode = !state.typingMode;
+    save();
+    syncTypingToggle();
+    if (!isFlipped) renderFlashcard();
+  });
+
+  // typing form submit
+  $('typeForm').addEventListener('submit', e => {
+    e.preventDefault();
+    submitTypedAnswer();
+  });
+
   // goal modal
   $('editGoalBtn').addEventListener('click', openGoalModal);
   $('goalMinus').addEventListener('click', () => setTempGoal(tempGoal - 1));
@@ -747,6 +820,7 @@ window.__applyCloudState = function (cloudState) {
 };
 window.__rerenderAll = rerenderAll;
 function rerenderAll() {
+  syncTypingToggle();
   renderTopbar();
   pickCard();
   renderFlashcard();
@@ -755,6 +829,7 @@ function rerenderAll() {
 
 // ===== Init =====
 bind();
+syncTypingToggle();
 renderTopbar();
 pickCard();
 renderFlashcard();
