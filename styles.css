@@ -478,24 +478,28 @@ input { font: inherit; }
   display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
   background: #ffffff;
   border: var(--border);
-  padding: 8px 10px 6px;
+  padding: 16px 10px 6px;
   min-width: 0;
   cursor: pointer;
   transition: transform .05s, box-shadow .05s;
   box-shadow: var(--shadow-soft);
+  overflow: hidden;
 }
 .cards-list li:hover { background: var(--accent-pink); }
 .cards-list li:active { transform: translate(3px, 3px); box-shadow: 0 0 0 0 var(--line); }
 .card-row__bullet {
-  width: 10px; height: 10px;
-  position: absolute; top: 8px; right: 8px;
-  border: 2px solid var(--line);
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 8px;
+  width: auto;
+  border: 0;
+  border-bottom: 2px solid var(--line);
 }
 .card-row__bullet.s-new      { background: var(--accent-pink-deep); }
 .card-row__bullet.s-learning { background: var(--bad); }
 .card-row__bullet.s-young    { background: var(--accent-yellow-deep); }
 .card-row__bullet.s-mature   { background: var(--good); }
-.card-row__words { display: flex; flex-direction: column; min-width: 0; width: 100%; padding-right: 18px; }
+.card-row__words { display: flex; flex-direction: column; min-width: 0; width: 100%; }
 .card-row__front {
   font-weight: 700; font-size: 18px; line-height: 1.1;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
