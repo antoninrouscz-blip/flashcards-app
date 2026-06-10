@@ -591,9 +591,15 @@ function fmtDateTime(ts) {
   return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}. ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+let editingCardId = null;
+
 function openDetail(cardId) {
   const c = state.cards.find(x => x.id === cardId);
   if (!c) return;
+  editingCardId = cardId;
+  // Always open in view mode
+  $('detailView').hidden = false;
+  $('detailEdit').hidden = true;
   $('detailFront').textContent = c.front;
   $('detailBack').textContent = c.back;
 
@@ -637,6 +643,33 @@ function openDetail(cardId) {
       pickCard();
       renderFlashcard();
     }
+  };
+
+  $('detEdit').onclick = () => {
+    $('editFront').value = c.front;
+    $('editBack').value = c.back;
+    $('detailView').hidden = true;
+    $('detailEdit').hidden = false;
+    setTimeout(() => $('editFront').focus(), 60);
+  };
+
+  $('editCancel').onclick = () => {
+    $('detailEdit').hidden = true;
+    $('detailView').hidden = false;
+  };
+
+  $('editSave').onclick = () => {
+    const f = $('editFront').value.trim();
+    const b = $('editBack').value.trim();
+    if (!f || !b) { toast('Vyplň obě strany'); return; }
+    c.front = f;
+    c.back = b;
+    save();
+    // Refresh the view-mode content with the new values, then switch back
+    openDetail(c.id);
+    renderCards();
+    // If the edited card is currently being studied, refresh the flashcard
+    if (currentCard && currentCard.id === c.id) renderFlashcard();
   };
 
   openModal('detailModal');

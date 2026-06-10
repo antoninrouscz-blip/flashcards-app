@@ -632,6 +632,8 @@ input { font: inherit; }
   padding: 10px 12px;
   box-shadow: var(--shadow-soft);
 }
+.detail__actions { gap: 8px; }
+.detail__actions .btn { padding: 12px 8px; font-size: 18px; min-width: 0; }
 .detail__grid dt { color: var(--primary-ink); margin-bottom: 8px; }
 .detail__grid dd {
   margin: 0;

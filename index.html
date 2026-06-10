@@ -189,28 +189,50 @@
     <div class="modal__backdrop" data-close></div>
     <div class="modal__sheet" role="dialog" aria-modal="true">
       <div class="modal__handle"></div>
-      <div class="detail__head">
-        <div>
-          <div class="detail__front" id="detailFront">—</div>
-          <div class="detail__back" id="detailBack">—</div>
+
+      <!-- VIEW mode -->
+      <div id="detailView">
+        <div class="detail__head">
+          <div>
+            <div class="detail__front" id="detailFront">—</div>
+            <div class="detail__back" id="detailBack">—</div>
+          </div>
+          <span class="detail__state" id="detailState">—</span>
         </div>
-        <span class="detail__state" id="detailState">—</span>
+
+        <dl class="detail__grid">
+          <div><dt>Stav</dt><dd id="detStateText">—</dd></div>
+          <div><dt>Interval</dt><dd id="detInterval">—</dd></div>
+          <div><dt>Ease factor</dt><dd id="detEase">—</dd></div>
+          <div><dt>Splatnost</dt><dd id="detDue">—</dd></div>
+          <div><dt>Opakování</dt><dd id="detReps">—</dd></div>
+          <div><dt>Selhání</dt><dd id="detLapses">—</dd></div>
+          <div><dt>Krok</dt><dd id="detStep">—</dd></div>
+          <div><dt>Poslední</dt><dd id="detLast">—</dd></div>
+        </dl>
+
+        <div class="modal__actions detail__actions">
+          <button class="btn btn--ghost" id="detDelete">Smazat</button>
+          <button class="btn btn--ghost" id="detEdit">Upravit</button>
+          <button class="btn btn--primary" data-close>Hotovo</button>
+        </div>
       </div>
 
-      <dl class="detail__grid">
-        <div><dt>Stav</dt><dd id="detStateText">—</dd></div>
-        <div><dt>Interval</dt><dd id="detInterval">—</dd></div>
-        <div><dt>Ease factor</dt><dd id="detEase">—</dd></div>
-        <div><dt>Splatnost</dt><dd id="detDue">—</dd></div>
-        <div><dt>Opakování</dt><dd id="detReps">—</dd></div>
-        <div><dt>Selhání</dt><dd id="detLapses">—</dd></div>
-        <div><dt>Krok</dt><dd id="detStep">—</dd></div>
-        <div><dt>Poslední</dt><dd id="detLast">—</dd></div>
-      </dl>
-
-      <div class="modal__actions">
-        <button class="btn btn--ghost" id="detDelete">Smazat</button>
-        <button class="btn btn--primary" data-close>Hotovo</button>
+      <!-- EDIT mode -->
+      <div id="detailEdit" hidden>
+        <h2 class="modal__title">Upravit kartu</h2>
+        <label class="field">
+          <span>Přední strana (EN)</span>
+          <input id="editFront" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </label>
+        <label class="field">
+          <span>Zadní strana (CS)</span>
+          <input id="editBack" type="text" autocomplete="off" autocorrect="off" spellcheck="false" />
+        </label>
+        <div class="modal__actions">
+          <button class="btn btn--ghost" id="editCancel">Zrušit</button>
+          <button class="btn btn--primary" id="editSave">Uložit</button>
+        </div>
       </div>
     </div>
   </div>
@@ -262,7 +284,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
   <script src="cloud.js?v=2"></script>
 
   <!-- Register service worker for offline app shell -->
