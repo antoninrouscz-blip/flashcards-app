@@ -119,6 +119,15 @@ input { font: inherit; }
   font-size: 22px;
   image-rendering: pixelated;
 }
+.px-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+}
+.stat__icon .px-icon { width: 28px; height: 28px; }
+.iconbtn .px-icon { width: 24px; height: 24px; }
 .stat__label { color: var(--primary-ink); margin-top: 2px; }
 .stat__value { font-size: 28px; font-weight: 700; line-height: 1; margin-top: 8px; color: var(--primary-ink); }
 .stat__unit { font-weight: 500; color: var(--primary); font-size: 18px; }
@@ -142,12 +151,7 @@ input { font: inherit; }
 }
 
 .progressbar {
-  height: 14px;
-  background: #ffffff;
-  border: var(--border);
-  margin: 14px 0 4px;
-  padding: 2px;
-  box-shadow: var(--shadow-soft);
+  display: none;
 }
 .progressbar__fill {
   height: 100%; width: 0%;

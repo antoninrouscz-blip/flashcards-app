@@ -19,7 +19,32 @@
     <section class="tab tab--learn is-active" data-tab="learn">
       <header class="topbar">
         <div class="stat">
-          <div class="stat__icon" aria-hidden="true">🔥</div>
+          <div class="stat__icon" aria-hidden="true">
+            <svg class="px-icon" viewBox="0 0 10 12" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+              <!-- white flame silhouette: narrow tip on top, body, wide base -->
+              <rect x="4" y="0" width="2" height="2" fill="#ffffff"/>
+              <rect x="3" y="2" width="4" height="1" fill="#ffffff"/>
+              <rect x="3" y="3" width="2" height="1" fill="#ffffff"/>
+              <rect x="6" y="3" width="1" height="1" fill="#ffffff"/>
+              <rect x="2" y="4" width="2" height="1" fill="#ffffff"/>
+              <rect x="6" y="4" width="2" height="1" fill="#ffffff"/>
+              <rect x="2" y="5" width="1" height="1" fill="#ffffff"/>
+              <rect x="7" y="5" width="1" height="1" fill="#ffffff"/>
+              <rect x="1" y="6" width="2" height="1" fill="#ffffff"/>
+              <rect x="7" y="6" width="2" height="1" fill="#ffffff"/>
+              <rect x="1" y="7" width="1" height="2" fill="#ffffff"/>
+              <rect x="8" y="7" width="1" height="2" fill="#ffffff"/>
+              <rect x="2" y="9" width="1" height="1" fill="#ffffff"/>
+              <rect x="7" y="9" width="1" height="1" fill="#ffffff"/>
+              <rect x="2" y="10" width="6" height="1" fill="#ffffff"/>
+              <rect x="3" y="11" width="4" height="1" fill="#ffffff"/>
+              <!-- yellow inner core: visible inside the hollow outline -->
+              <rect x="4" y="5" width="2" height="1" fill="#fff3b0"/>
+              <rect x="3" y="6" width="4" height="1" fill="#fff3b0"/>
+              <rect x="2" y="7" width="6" height="2" fill="#fff3b0"/>
+              <rect x="3" y="9" width="4" height="1" fill="#fff3b0"/>
+            </svg>
+          </div>
           <div class="stat__body">
             <div class="stat__label">Streak</div>
             <div class="stat__value"><span id="streakValue">0</span> <span class="stat__unit">dní</span></div>
@@ -30,7 +55,33 @@
             <div class="stat__label">Dnešní cíl</div>
             <div class="stat__value"><span id="goalProgress">0</span> / <span id="goalTotal">10</span></div>
           </div>
-          <button class="iconbtn" id="editGoalBtn" aria-label="Upravit cíl">✎</button>
+          <button class="iconbtn" id="editGoalBtn" aria-label="Upravit cíl">
+            <svg class="px-icon" viewBox="0 0 12 8" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+              <!-- top + bottom navy outlines -->
+              <rect x="0" y="1" width="9" height="1" fill="#001a47"/>
+              <rect x="0" y="6" width="9" height="1" fill="#001a47"/>
+              <!-- left edge (eraser end) -->
+              <rect x="0" y="2" width="1" height="4" fill="#001a47"/>
+              <!-- pink eraser (cols 1-2) -->
+              <rect x="1" y="2" width="2" height="4" fill="#ffe5ec"/>
+              <!-- navy separator between eraser and body -->
+              <rect x="3" y="2" width="1" height="4" fill="#001a47"/>
+              <!-- yellow body (cols 4-6) -->
+              <rect x="4" y="2" width="3" height="4" fill="#fff3b0"/>
+              <!-- wood transition (col 7, lighter) -->
+              <rect x="7" y="2" width="1" height="4" fill="#d4a878"/>
+              <!-- wood/tip cone narrowing toward the right -->
+              <rect x="8" y="2" width="1" height="1" fill="#001a47"/>
+              <rect x="8" y="5" width="1" height="1" fill="#001a47"/>
+              <rect x="8" y="3" width="1" height="2" fill="#d4a878"/>
+              <rect x="9" y="3" width="1" height="1" fill="#001a47"/>
+              <rect x="9" y="4" width="1" height="1" fill="#001a47"/>
+              <!-- lead point (the dark sharp end) -->
+              <rect x="10" y="3" width="1" height="1" fill="#001a47"/>
+              <rect x="10" y="4" width="1" height="1" fill="#001a47"/>
+              <rect x="11" y="3" width="1" height="2" fill="#001a47"/>
+            </svg>
+          </button>
         </div>
       </header>
 
