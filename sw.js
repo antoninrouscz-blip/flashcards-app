@@ -1,5 +1,5 @@
 // Bump CACHE_VERSION on every release to bust old caches.
-const CACHE_VERSION = 'v7';
+const CACHE_VERSION = 'v9';
 const CACHE_NAME = `slovicka-shell-${CACHE_VERSION}`;
 const APP_SHELL = [
   './',
@@ -11,8 +11,6 @@ const APP_SHELL = [
   'manifest.json',
   'icons/icon-192.png',
   'icons/icon-512.png',
-  'icons/ohen.png',
-  'icons/tuzka.png',
 ];
 
 self.addEventListener('install', e => {
