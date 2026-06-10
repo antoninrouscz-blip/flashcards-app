@@ -28,6 +28,106 @@ const SEED_CARDS = [
   ['school', 'škola'],
   ['work', 'práce'],
   ['summer', 'léto'],
+  // Food & drink
+  ['potatoes', 'brambory'],
+  ['tea', 'čaj'],
+  ['french fries', 'hranolky'],
+  ['coffee', 'káva'],
+  ['dumplings', 'knedlíky'],
+  ['chicken', 'kuře'],
+  ['meat', 'maso'],
+  ['pancakes / crepes', 'palačinky'],
+  ['beer', 'pivo'],
+  ['soup', 'polévka'],
+  ['rice', 'rýže'],
+  ['salmon', 'losos'],
+  ['wine', 'víno'],
+  ['ice cream', 'zmrzlina'],
+  // Times of day
+  ['late morning', 'dopoledne'],
+  ['noon', 'poledne'],
+  ['afternoon', 'odpoledne'],
+  ['evening', 'večer'],
+  // Verbs
+  ['to cook', 'vařit'],
+  ['to swim', 'plavat'],
+  ['to read', 'číst'],
+  ['to exercise', 'cvičit'],
+  // Frequency
+  ['always', 'vždycky'],
+  ['all the time / constantly', 'pořád'],
+  ['often', 'často'],
+  ['mostly', 'většinou'],
+  ['usually', 'obvykle'],
+  ['sometimes', 'někdy'],
+  ['never', 'nikdy'],
+  // Family
+  ['grandma', 'babička'],
+  ['brother', 'bratr'],
+  ['daughter', 'dcera'],
+  ['mother (mom)', 'matka (mamka)'],
+  ['husband', 'manžel'],
+  ['wife', 'manželka'],
+  ['grandfather (grandpa)', 'dědeček (děda)'],
+  ['father (dad)', 'otec (táta)'],
+  ['sister', 'sestra'],
+  ['son', 'syn'],
+  ['granddaughter', 'vnučka'],
+  ['grandson', 'vnuk'],
+  // Jobs
+  ['clerk / office worker', 'úředník'],
+  ['worker / laborer', 'dělník'],
+  ['waiter', 'číšník'],
+  ['teacher', 'učitel'],
+  ['doctor', 'doktor'],
+  ['shop assistant / salesperson', 'prodavač'],
+  ['manager', 'manažer'],
+  ['scientist', 'vědec'],
+  ['police officer', 'policista'],
+  ['cleaner / janitor', 'uklízeč'],
+  ['firefighter', 'hasič'],
+  ['athlete', 'sportovec'],
+  ['actor', 'herec'],
+  ['singer', 'zpěvák'],
+  ['politician', 'politik'],
+  // Daily routine verbs
+  ['to get up / to wake up', 'vstávat'],
+  ['to have breakfast', 'snídat'],
+  ['to have lunch', 'obědvat'],
+  ['to have dinner', 'večeřet'],
+  ['to study / to learn', 'učit se'],
+  ['to clean', 'uklízet'],
+  ['to shop', 'nakupovat'],
+  ['to dance', 'tancovat'],
+  ['to sleep', 'spát'],
+  // Places
+  ['theater', 'divadlo'],
+  ['at home', 'doma'],
+  ['office', 'kancelář'],
+  ['club', 'klub'],
+  ['train station', 'nádraží'],
+  ['square', 'náměstí'],
+  ['hospital', 'nemocnice'],
+  ['university', 'univerzita'],
+  // Adjectives
+  ['good', 'dobrý'],
+  ['bad', 'špatný'],
+  ['thin / skinny', 'hubený'],
+  ['fat / thick', 'tlustý'],
+  ['poor', 'chudý'],
+  ['rich', 'bohatý'],
+  ['pretty', 'hezký'],
+  ['ugly', 'škaredý'],
+  ['happy', 'veselý'],
+  ['sad', 'smutný'],
+  ['young', 'mladý'],
+  ['old', 'starý'],
+  ['tall / high', 'vysoký'],
+  ['small / short', 'malý'],
+  ['expensive', 'drahý'],
+  ['cheap', 'levný'],
+  ['kind', 'hodný'],
+  ['evil', 'zlý'],
 ];
 
 function startOfDay(ts = Date.now()) {
@@ -91,6 +191,23 @@ function loadState() {
     }
     if (!Array.isArray(s.sessionRetry)) s.sessionRetry = [];
     if (typeof s.typingMode !== 'boolean') s.typingMode = false;
+    // Merge in any new seed cards added since this deck was saved.
+    // Dedup by Czech word (back), so existing cards keep their progress.
+    const norm = w => String(w).trim().toLowerCase();
+    const haveBacks = new Set(s.cards.map(c => norm(c.back)));
+    let nextId = Math.max(s.nextId || 0, ...s.cards.map(c => c.id || 0)) + 1;
+    const seedToday = startOfDay();
+    for (const [f, b] of SEED_CARDS) {
+      if (haveBacks.has(norm(b))) continue;
+      haveBacks.add(norm(b));
+      s.cards.push({
+        id: nextId++,
+        front: f, back: b,
+        state: 'new', step: 0, ease: 2.5, interval: 0,
+        reps: 0, lapses: 0, due: seedToday, lastGrade: null, lastReview: 0, dir: 0,
+      });
+    }
+    s.nextId = nextId;
     // day rollover
     const today = startOfDay();
     if (s.todayKey !== today) {
