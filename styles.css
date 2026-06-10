@@ -265,21 +265,36 @@ input { font: inherit; }
 }
 
 /* ---------- Learn ---------- */
+/* Lock Učení do výšky viewportu — horní část se nesmí scrollovat mimo display. */
+html:has(.tab--learn.is-active),
+body:has(.tab--learn.is-active) {
+  overflow: hidden;
+  height: 100dvh;
+}
+.tab--learn.is-active {
+  display: flex; flex-direction: column;
+  height: 100dvh;
+  box-sizing: border-box;
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
+}
 .learn-main {
   display: flex; flex-direction: column;
   gap: 18px;
   margin-top: 18px;
+  flex: 1;
+  min-height: 0;
   /* leave room for fixed action bar above tabbar */
   padding-bottom: 220px;
 }
 
-.card-stage { position: relative; min-height: 360px; }
+.card-stage { position: relative; min-height: 0; flex: 1; }
 
 .flashcard {
   position: relative;
   background: #ffffff;
   color: var(--text);
-  min-height: 360px;
+  min-height: 0;
+  height: 100%;
   display: grid;
   grid-template-rows: 1fr auto 1fr;
   border: var(--border);
@@ -578,6 +593,20 @@ input { font: inherit; }
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
 .modal__handle { width: 48px; height: 6px; background: var(--line); margin: 0 auto 14px; }
+.modal__close {
+  position: absolute;
+  top: 10px; right: 12px;
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  font-size: 26px; font-weight: 700; line-height: 1;
+  color: var(--primary-ink);
+  background: #ffffff;
+  border: var(--border);
+  box-shadow: var(--shadow-soft);
+  transition: transform .05s, box-shadow .05s;
+  z-index: 2;
+}
+.modal__close:active { transform: translate(3px, 3px); box-shadow: 0 0 0 0 var(--line); }
 .modal__title {
   font-size: 16px; margin: 4px 0 6px;
   color: var(--primary-ink);
@@ -624,6 +653,8 @@ input { font: inherit; }
 .detail__head {
   display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
   margin: 4px 0 14px;
+  /* room for the X close button in the top-right corner */
+  padding-right: 44px;
 }
 .detail__front { font-size: 32px; font-weight: 700; line-height: 1; color: var(--primary-ink); }
 .detail__back { font-size: 20px; color: var(--text-dim); margin-top: 6px; }
