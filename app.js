@@ -2,6 +2,20 @@
 const STORAGE_KEY = 'slovicka.v1';
 const DAY = 24 * 60 * 60 * 1000;
 
+// Cat reward images shown when the daily challenge is completed (in cats/).
+const CAT_GIFS = [
+  '200w.gif',
+  '730d75ed729397068c7a89fa7476e305.gif',
+  'WRJGEt5.jpg',
+  'cat-cat-kiss.gif',
+  'cat-gif-14.gif',
+  'couple-cat-kiss-lick-c9m5z197jxjhgt3f.gif',
+  'giphy-downsized-large.gif',
+  'giphy-downsized-medium.gif',
+  'p1vyftmarq0a1.gif',
+  'xgzjmlfeibv7ibqgljkq.webp',
+];
+
 const SEED_CARDS = [
   ['apple', 'jablko'],
   ['house', 'dům'],
@@ -537,16 +551,28 @@ function renderTopbar() {
 let currentCard = null;
 let isFlipped = false;
 let typedAnswer = ''; // what user typed in typing mode for current card
+let goalReached = false;     // daily goal met and learning paused on the goal screen
+let continuePastGoal = false; // user chose to keep going after meeting the goal (per session)
+let celebrationCat = null;   // cat image filename picked once per completion view
 
 function pickCard() {
   const due = dueCards();
-  if (due.length > 0) {
+  // Pause on the goal screen once the daily goal is met, as long as the user
+  // hasn't opted to keep going and there's still something to study.
+  const goalMet = state.goal > 0 && state.todayDone >= state.goal;
+  if (goalMet && !continuePastGoal && (due.length > 0 || state.sessionRetry.length > 0)) {
+    currentCard = null;
+    goalReached = true;
+  } else if (due.length > 0) {
     currentCard = due[0];
+    goalReached = false;
   } else if (state.sessionRetry.length > 0) {
     const id = state.sessionRetry[0];
     currentCard = state.cards.find(c => c.id === id) || null;
+    goalReached = false;
   } else {
     currentCard = null;
+    goalReached = false;
   }
   isFlipped = false;
   typedAnswer = '';
@@ -578,8 +604,30 @@ function renderFlashcard() {
     fc.style.display = 'none';
     empty.hidden = false;
     actions.style.display = 'none';
+    const continueBtn = $('continueBtn');
+    const cat = $('catGif');
+    const goalDone = state.goal > 0 && state.todayDone >= state.goal;
+    if (goalDone) {
+      // Daily challenge complete — reward with a cat, optionally let them continue.
+      if (!celebrationCat) celebrationCat = CAT_GIFS[Math.floor(Math.random() * CAT_GIFS.length)];
+      cat.src = 'cats/' + celebrationCat;
+      cat.hidden = false;
+      $('emptyEmoji').hidden = true;
+      $('emptyTitle').textContent = 'Pro dnešek hotovo! 🎉';
+      $('emptyText').textContent = goalReached ? 'Můžeš skončit, nebo pokračovat dál.' : '';
+      continueBtn.hidden = !goalReached;
+    } else {
+      cat.hidden = true;
+      $('emptyEmoji').hidden = false;
+      $('emptyEmoji').textContent = '🎉';
+      $('emptyTitle').textContent = 'Hotovo na dnes!';
+      $('emptyText').textContent = 'Žádné karty k opakování. Vrať se zítra.';
+      continueBtn.hidden = true;
+    }
     return;
   }
+  // showing a card again — reset so the next completion picks a fresh cat
+  celebrationCat = null;
   fc.style.display = '';
   empty.hidden = true;
   actions.style.display = '';
@@ -901,6 +949,13 @@ function bind() {
   // tabs
   document.querySelectorAll('.tabbar__btn').forEach(b => {
     b.addEventListener('click', () => switchTab(b.dataset.target));
+  });
+
+  // continue past daily goal
+  $('continueBtn').addEventListener('click', () => {
+    continuePastGoal = true;
+    pickCard();
+    renderFlashcard();
   });
 
   // reveal / rate

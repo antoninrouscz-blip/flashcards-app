@@ -71,9 +71,11 @@
           </article>
 
           <div class="empty" id="emptyState" hidden>
-            <div class="empty__emoji">🎉</div>
-            <div class="empty__title">Hotovo na dnes!</div>
-            <div class="empty__text">Žádné karty k opakování. Vrať se zítra.</div>
+            <img class="empty__cat" id="catGif" alt="" hidden>
+            <div class="empty__emoji" id="emptyEmoji">🎉</div>
+            <div class="empty__title" id="emptyTitle">Hotovo na dnes!</div>
+            <div class="empty__text" id="emptyText">Žádné karty k opakování. Vrať se zítra.</div>
+            <button class="btn btn--primary empty__btn" id="continueBtn" hidden>Pokračovat v učení</button>
           </div>
         </div>
 
@@ -289,7 +291,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=9"></script>
   <script src="cloud.js?v=2"></script>
 
   <!-- Register service worker for offline app shell -->

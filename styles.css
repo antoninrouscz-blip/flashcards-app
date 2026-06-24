@@ -287,6 +287,10 @@ body:has(.tab--learn.is-active) {
   padding-bottom: 220px;
 }
 
+/* When the empty / celebration screen is shown there's no fixed action bar,
+   so drop the reserved space and let the card-stage (and the cat) fill it. */
+.learn-main:has(#emptyState:not([hidden])) { padding-bottom: 24px; }
+
 .card-stage { position: relative; min-height: 0; flex: 1; }
 
 .flashcard {
@@ -362,6 +366,14 @@ body:has(.tab--learn.is-active) {
   line-height: 1.4;
 }
 .empty__text { color: var(--primary-ink); margin-top: 12px; font-size: 18px; }
+.empty__btn { margin-top: 24px; }
+.empty__cat {
+  max-width: 90%; max-height: 60%;
+  object-fit: contain;
+  margin-bottom: 16px;
+  border: var(--border);
+  box-shadow: var(--shadow-lg);
+}
 
 /* ---------- Action buttons (sticky above tabbar) ---------- */
 .actions {
