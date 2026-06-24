@@ -208,6 +208,8 @@ function defaultState() {
       lastReview: 0,       // ms timestamp of last review
       // direction toggle: 0 = front→back (EN→CS), 1 = back→front (CS→EN)
       dir: 0,
+      // stable random sort key so cards aren't shown in add order
+      ord: Math.random(),
     })),
     nextId: SEED_CARDS.length + 1,
   };
@@ -229,6 +231,7 @@ function loadState() {
       if (typeof c.step !== 'number') c.step = 0;
       if (typeof c.lapses !== 'number') c.lapses = 0;
       if (typeof c.lastReview !== 'number') c.lastReview = 0;
+      if (typeof c.ord !== 'number') c.ord = Math.random();
       delete c.ef;
     }
     if (!Array.isArray(s.sessionRetry)) s.sessionRetry = [];
@@ -247,6 +250,7 @@ function loadState() {
         front: f, back: b,
         state: 'new', step: 0, ease: 2.5, interval: 0,
         reps: 0, lapses: 0, due: seedToday, lastGrade: null, lastReview: 0, dir: 0,
+        ord: Math.random(),
       });
     }
     s.nextId = nextId;
@@ -498,7 +502,8 @@ function dueCards() {
       const oa = order[a.state] ?? 3;
       const ob = order[b.state] ?? 3;
       if (oa !== ob) return oa - ob;
-      return a.due - b.due || a.id - b.id;
+      // within a group: due time first, then stable random key (not add order)
+      return a.due - b.due || (a.ord ?? 0) - (b.ord ?? 0) || a.id - b.id;
     });
 }
 
