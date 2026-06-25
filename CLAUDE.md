@@ -61,6 +61,17 @@ Hodnocení (grade): **0 = Neumím (Again)**, **1 = Meh (Hard)**, **2 = Umím (Go
 
 Bez Firebase configu (placeholdery) appka běží v offline-only režimu.
 
+## Jak přidat nové karty (nejčastější úkol)
+
+Karty jsou natvrdo v poli `SEED_CARDS` na začátku [app.js](app.js) ve formátu `['anglicky', 'česky']` (EN = `front`, CS = `back`). Postup:
+
+1. **Přidej řádky do `SEED_CARDS`** — angličtina vlevo, čeština vpravo. Pro přehlednost je drž v tematických skupinách s komentářem (`// Food & drink` apod.), jako zbytek pole.
+2. **Nic víc v kódu netřeba.** `loadState()` při startu nové seed karty automaticky mergne do uloženého state (dedup podle českého slova v `back`), takže se objeví i stávajícím uživatelům, aniž by ztratili postup. Pořadí je náhodné (klíč `ord`), ne podle pořadí přidání.
+3. **Cache-bust (POVINNÉ):** změna `app.js` → zvyš `app.js?v=N` v `index.html` i `sw.js` **a** zvyš `CACHE_VERSION` v `sw.js` (viz níže).
+4. **Deploy:** `git push` (případně přes nový token, viz dole). Pages nasadí za pár minut.
+
+Tip: dávkové zadání ve formátu `česky <tab> anglicky` klidně nech přeložit/přeskládat — ukládá se ale `['EN', 'CS']`, takže pozor na pořadí sloupců.
+
 ## Deploy workflow (GitHub Pages + Firebase)
 
 Nasazení = `git push` na GitHub, Pages servíruje `main`/root → `https://<user>.github.io/flashcards-app/`. Data (postup uživatele) se ukládají do Firestore pod jeho účtem.
@@ -73,7 +84,7 @@ Service worker cachuje app shell **cache-first**. Bez verzování by uživatelé
 - **Změna `cloud.js`** → totéž s `cloud.js?v=N`.
 - **Změna `styles.css`, obrázků nebo jiných assetů** → stačí zvýšit `CACHE_VERSION` v `sw.js` (smaže starou cache, vše se přefetchuje).
 
-`CACHE_VERSION` je teď `v10`. Bump = `v11`, atd.
+`CACHE_VERSION` je teď `v15`. Bump = `v16`, atd.
 
 ## UI layout pravidla
 
