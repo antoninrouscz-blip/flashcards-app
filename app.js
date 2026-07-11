@@ -766,6 +766,47 @@ function renderTopbar() {
   $('goalTotal').textContent = state.goal;
   const pct = Math.min(100, (state.todayDone / state.goal) * 100);
   $('goalBar').style.width = pct + '%';
+
+  // Cards due today or earlier (not just due at this exact moment), and how many of those are new
+  const todayEnd = startOfDay() + DAY;
+  const dueToday = state.cards.filter(c => c.due < todayEnd);
+  const newToday = dueToday.filter(c => c.state === 'new').length;
+  $('dueTodayValue').textContent = dueToday.length;
+  $('dueTodayNew').textContent = newToday > 0 ? `(${newToday} nových)` : '';
+}
+
+function fmtDueDay(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  if (sameDay) return 'dnes';
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.`;
+}
+
+function openDueTodayModal() {
+  const todayEnd = startOfDay() + DAY;
+  const due = state.cards.filter(c => c.due < todayEnd).sort((a, b) => a.due - b.due);
+  const ul = $('dueTodayList');
+  ul.innerHTML = '';
+  if (due.length === 0) {
+    ul.innerHTML = '<li class="due-list__empty">Žádná slova na dnes 🎉</li>';
+  } else {
+    for (const c of due) {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div class="due-list__words">
+          <div class="due-list__front">${escapeHtml(c.front)}</div>
+          <div class="due-list__back">${escapeHtml(c.back)}</div>
+        </div>
+        <div class="due-list__meta">
+          ${c.state === 'new' ? '<span class="detail__state s-new">nový</span>' : ''}
+          <span class="due-list__day">${fmtDueDay(c.due)}</span>
+        </div>`;
+      ul.appendChild(li);
+    }
+  }
+  openModal('dueTodayModal');
 }
 
 let currentCard = null;
@@ -1200,6 +1241,7 @@ function bind() {
 
   // goal modal
   $('editGoalBtn').addEventListener('click', openGoalModal);
+  $('dueTodayBtn').addEventListener('click', openDueTodayModal);
   $('goalMinus').addEventListener('click', () => setTempGoal(tempGoal - 1));
   $('goalPlus').addEventListener('click', () => setTempGoal(tempGoal + 1));
   document.querySelectorAll('.preset button').forEach(b => {

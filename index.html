@@ -19,23 +19,24 @@
     <section class="tab tab--learn is-active" data-tab="learn">
       <header class="topbar">
         <div class="stat">
-          <div class="stat__icon" aria-hidden="true">
-            <span class="emoji-icon">🔥</span>
-          </div>
           <div class="stat__body">
             <div class="stat__label">Streak</div>
             <div class="stat__value"><span id="streakValue">0</span> <span class="stat__unit">dní</span></div>
           </div>
         </div>
-        <div class="stat stat--goal">
+        <button type="button" class="stat stat--goal" id="editGoalBtn" aria-label="Upravit denní cíl">
           <div class="stat__body">
             <div class="stat__label">Dnešní cíl</div>
             <div class="stat__value"><span id="goalProgress">0</span> / <span id="goalTotal">10</span></div>
           </div>
-          <button class="iconbtn" id="editGoalBtn" aria-label="Upravit cíl">
-            <span class="emoji-icon">✅</span>
-          </button>
-        </div>
+        </button>
+        <button type="button" class="stat stat--today" id="dueTodayBtn" aria-label="Zobrazit slovíčka na dnes">
+          <div class="stat__body">
+            <div class="stat__label">Na dnes</div>
+            <div class="stat__value"><span id="dueTodayValue">0</span></div>
+            <div class="stat__sub" id="dueTodayNew"></div>
+          </div>
+        </button>
       </header>
 
       <div class="progressbar">
@@ -265,6 +266,17 @@
     </div>
   </div>
 
+  <!-- DUE TODAY MODAL -->
+  <div class="modal" id="dueTodayModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__sheet" role="dialog" aria-modal="true" aria-labelledby="dueTodayTitle">
+      <button type="button" class="modal__close" data-close aria-label="Zavřít">×</button>
+      <div class="modal__handle"></div>
+      <h2 class="modal__title" id="dueTodayTitle">Slovíčka na dnes</h2>
+      <ul class="due-list" id="dueTodayList"></ul>
+    </div>
+  </div>
+
   <div class="toast" id="toast" hidden></div>
 
   <!-- Sign-in overlay: shown until user is authenticated -->
@@ -291,7 +303,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
 
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=14"></script>
   <script src="cloud.js?v=2"></script>
 
   <!-- Register service worker for offline app shell -->
