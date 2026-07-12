@@ -404,6 +404,104 @@ const SEED_CARDS = [
   ['wisdom', 'moudrost'],
   ['strength', 'síla'],
   ['courage', 'odvaha'],
+  // Norse mythology - narrative vocabulary
+  ['get / obtain', 'získat'],
+  ["one's own", 'svůj'],
+  ['famous / renowned', 'proslavené'],
+  ['hammer', 'kladivo'],
+  ['world', 'svět'],
+  ['connect / link', 'spojovat'],
+  ['eternally / forever', 'věčně'],
+  ['ash tree', 'jasan'],
+  ['wall', 'zeď'],
+  ['around', 'kolem'],
+  ['follow', 'následovat'],
+  ['after the end', 'po konci'],
+  ['called / named', 'zvaný'],
+  ['correspond / match', 'odpovídat'],
+  ['exceptionally', 'výjimečně'],
+  ['chosen / summoned', 'povolaný'],
+  ['retelling', 'převyprávění'],
+  ['myth', 'mýtus'],
+  ['breathe in / inhale', 'vdechovat'],
+  ['individual', 'jednotlivý'],
+  ['moreover / on top of that', 'navíc'],
+  ['theme / topic', 'téma'],
+  ['prank / crazy stunt', 'vylomenina'],
+  ['continuous / coherent', 'souvislý'],
+  ['extensive / comprehensive', 'obsáhlý'],
+  ['narrative / storytelling', 'vyprávění'],
+  ['in which', 'v němž'],
+  ['give birth', 'rodit'],
+  ['mead', 'medovina'],
+  ['flow', 'téct'],
+  ['in a stream / current', 'proudem'],
+  ['wolf', 'vlk'],
+  ['apple tree', 'jabloň'],
+  ['immortality', 'nesmrtelnost'],
+  ['absolutely / utterly', 'naprosto'],
+  ['indispensable', 'nepostradatelná'],
+  ['lover / enthusiast', 'milovník'],
+  ['generally', 'obecně'],
+  ['introduction', 'úvod'],
+  ['the same / anyway', 'stejně'],
+  ['some / certain', 'některý'],
+  ['some other time', 'jindy'],
+  ['start longing for', 'zatoužit'],
+  ['grow up', 'vyrůst'],
+  ['if I (were)', 'kdybych'],
+  ['belong', 'patřit'],
+  ['probably', 'pravděpodobně'],
+  ['meeting / encounter', 'setkání'],
+  ['inhabitant', 'obyvatel'],
+  ['adventure', 'dobrodružství'],
+  ['capture', 'zachytit'],
+  ['story', 'příběh'],
+  ['whose', 'jejichž'],
+  ['plot', 'zápletka'],
+  ['handsome', 'pohledný'],
+  ['gorgeous / magnificent', 'nádherný'],
+  ['building', 'budova'],
+  ['noble', 'ušlechtilý'],
+  ['sarcastic / biting', 'jízlivé'],
+  ['creature', 'stvoření'],
+  ['helmet', 'přilba'],
+  ['troublemaker', 'potížista'],
+  ['adore', 'zbožňovat'],
+  ['wave / swing', 'máchat'],
+  ['find out / learn', 'dozvědět se'],
+  ['borrow', 'vypůjčit'],
+  ['copy (of a book)', 'výtisk'],
+  ['pleasure / delight', 'potěšení'],
+  ['confusion / chaos', 'zmatek'],
+  ['hall', 'síň'],
+  ['chill / freeze', 'mrazit'],
+  ['freezing / frosty', 'mrazivý'],
+  ['wasteland', 'pustina'],
+  ['unpredictable', 'nevyspytatelný'],
+  ['destructive', 'ničivý'],
+  ['honestly', 'upřímně'],
+  ['honestly speaking / to be honest', 'upřímně řečeno'],
+  ['just (now)', 'právě'],
+  ['definitely', 'rozhodně'],
+  ['complex nature', 'složitá povaha'],
+  ['clash / face off', 'utkat se'],
+  // Shops
+  ['candy store', 'cukrárna'],
+  ['drugstore', 'drogerie'],
+  ['bookstore', 'knihkupectví'],
+  ['flower shop', 'květinářství'],
+  ["butcher's / deli", 'maso a uzeniny'],
+  ['shoe shop', 'obuv'],
+  ['clothing store', 'oděvy'],
+  ["greengrocer's", 'ovoce a zelenina'],
+  ['bakery', 'pekařství'],
+  ['grocery store', 'potraviny'],
+  ['pharmacy', 'lékárna'],
+  ['electronics store', 'elektro'],
+  ["optician's", 'oční optika'],
+  ['stationery shop', 'papírnictví'],
+  ['newsstand / tobacco shop', 'trafika'],
 ];
 
 function startOfDay(ts = Date.now()) {
@@ -814,7 +912,18 @@ let isFlipped = false;
 let typedAnswer = ''; // what user typed in typing mode for current card
 let goalReached = false;     // daily goal met and learning paused on the goal screen
 let continuePastGoal = false; // user chose to keep going after meeting the goal (per session)
+let studyAhead = false;      // user chose to keep going after finishing all of today's cards (per session)
 let celebrationCat = null;   // cat image filename picked once per completion view
+
+// Closest-due card that isn't due yet, for studying ahead of schedule once
+// today's queue is empty. Sorted the same way as dueCards().
+function upcomingCard() {
+  const now = Date.now();
+  const upcoming = state.cards
+    .filter(c => c.due > now)
+    .sort((a, b) => a.due - b.due || (a.ord ?? 0) - (b.ord ?? 0) || a.id - b.id);
+  return upcoming[0] || null;
+}
 
 function pickCard() {
   const due = dueCards();
@@ -830,6 +939,9 @@ function pickCard() {
   } else if (state.sessionRetry.length > 0) {
     const id = state.sessionRetry[0];
     currentCard = state.cards.find(c => c.id === id) || null;
+    goalReached = false;
+  } else if (studyAhead) {
+    currentCard = upcomingCard();
     goalReached = false;
   } else {
     currentCard = null;
@@ -882,8 +994,11 @@ function renderFlashcard() {
       $('emptyEmoji').hidden = false;
       $('emptyEmoji').textContent = '🎉';
       $('emptyTitle').textContent = 'Hotovo na dnes!';
-      $('emptyText').textContent = 'Žádné karty k opakování. Vrať se zítra.';
-      continueBtn.hidden = true;
+      const hasUpcoming = upcomingCard() !== null;
+      $('emptyText').textContent = hasUpcoming
+        ? 'Žádné karty k opakování. Můžeš skončit, nebo pokračovat dál.'
+        : 'Žádné karty k opakování. Vrať se zítra.';
+      continueBtn.hidden = !hasUpcoming;
     }
     return;
   }
@@ -1212,9 +1327,10 @@ function bind() {
     b.addEventListener('click', () => switchTab(b.dataset.target));
   });
 
-  // continue past daily goal
+  // continue past daily goal / past today's queue
   $('continueBtn').addEventListener('click', () => {
     continuePastGoal = true;
+    studyAhead = true;
     pickCard();
     renderFlashcard();
   });

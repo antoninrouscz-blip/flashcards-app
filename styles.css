@@ -131,7 +131,8 @@ input { font: inherit; }
 }
 .iconbtn .px-icon { width: 24px; height: 24px; }
 .stat__label { color: var(--primary-ink); margin-top: 2px; }
-.stat__value { font-size: 28px; font-weight: 700; line-height: 1; margin-top: 8px; color: var(--primary-ink); }
+.stat__value { font-size: 28px; font-weight: 700; line-height: 1; margin-top: 8px; color: var(--primary-ink); white-space: nowrap; }
+.stat--goal .stat__value { font-size: clamp(15px, 5.5vw, 28px); }
 .stat__unit { font-weight: 500; color: var(--primary); font-size: 18px; }
 .stat__sub { font-size: 11px; line-height: 1.3; color: var(--primary); margin-top: 4px; }
 
