@@ -504,6 +504,36 @@ const SEED_CARDS = [
   ['newsstand / tobacco shop', 'trafika'],
 ];
 
+// Sentence-scramble exercises for the "Věty" tab (EN prompt, arrange the CS words).
+// Local-only for now — not part of the saved app state / cloud sync.
+const SEED_SENTENCES = [
+  { en: 'My brother works in a hospital.', cs: 'Můj bratr pracuje v nemocnici.' },
+  { en: 'She is reading a good book.', cs: 'Ona čte dobrou knihu.' },
+  { en: 'We are going to the mountains tomorrow.', cs: 'Zítra jedeme do hor.' },
+  { en: 'Where is the nearest pharmacy?', cs: 'Kde je nejbližší lékárna?' },
+  { en: 'The weather is very cold today.', cs: 'Počasí je dnes velmi studené.' },
+  { en: 'My grandmother makes delicious dumplings.', cs: 'Moje babička dělá výborné knedlíky.' },
+  { en: 'Can you help me, please?', cs: 'Můžeš mi prosím pomoct?' },
+  { en: 'The children are playing in the garden.', cs: 'Děti si hrají na zahradě.' },
+  { en: 'I usually drink coffee in the morning.', cs: 'Ráno obvykle piju kávu.' },
+  { en: 'This restaurant is too expensive for us.', cs: 'Tahle restaurace je pro nás moc drahá.' },
+  { en: 'He never eats meat.', cs: 'On nikdy nejí maso.' },
+  { en: 'We need to buy bread and milk.', cs: 'Musíme koupit chleba a mléko.' },
+  { en: 'Why are you so tired?', cs: 'Proč jsi tak unavený?' },
+  { en: 'The train leaves at seven.', cs: 'Vlak odjíždí v sedm hodin.' },
+  { en: 'I think this dress is very pretty.', cs: 'Myslím, že tyhle šaty jsou moc hezké.' },
+  { en: 'My father works as a doctor.', cs: 'Můj otec pracuje jako doktor.' },
+  { en: 'Do you want tea or coffee?', cs: 'Chceš čaj nebo kávu?' },
+  { en: 'Yesterday I met my old friend.', cs: 'Včera jsem potkal starého kamaráda.' },
+  { en: 'The dog is sleeping under the table.', cs: 'Pes spí pod stolem.' },
+  { en: 'Next year we are going to Prague.', cs: 'Příští rok pojedeme do Prahy.' },
+  { en: "I don't understand this word.", cs: 'Nerozumím tomuhle slovu.' },
+  { en: 'She always helps her sister.', cs: 'Vždycky pomáhá své sestře.' },
+  { en: 'How much does this shirt cost?', cs: 'Kolik stojí tahle košile?' },
+  { en: 'We were at the theater last week.', cs: 'Minulý týden jsme byli v divadle.' },
+  { en: 'My sister is a very good teacher.', cs: 'Moje sestra je velmi dobrá učitelka.' },
+];
+
 function startOfDay(ts = Date.now()) {
   const d = new Date(ts);
   d.setHours(0, 0, 0, 0);
@@ -1269,6 +1299,128 @@ function escapeHtml(s) {
   }[m]));
 }
 
+// ===== Sentences (Věty) tab =====
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+let sentenceQueue = [];      // shuffled indices into SEED_SENTENCES, consumed in order
+let sentenceQueuePos = 0;
+let currentSentence = null;  // { en, words, tiles } — words = correct, properly written; tiles = same, cleaned for display
+let sentenceBank = [];       // [{ id, text }], shuffled; id = word's correct position
+let sentenceAnswer = [];     // ids in the order the user clicked them
+let sentenceChecked = false;
+
+// Tile text is stripped of capitalization and trailing punctuation so the first/last
+// word can't be spotted at a glance — the real spelling only shows in the answer key.
+function cleanWord(w) {
+  return w.replace(/[.,!?:;]+$/, '').toLowerCase();
+}
+
+function nextSentence() {
+  if (sentenceQueuePos >= sentenceQueue.length) {
+    sentenceQueue = shuffle(SEED_SENTENCES.map((_, i) => i));
+    sentenceQueuePos = 0;
+  }
+  const s = SEED_SENTENCES[sentenceQueue[sentenceQueuePos++]];
+  const words = s.cs.split(' ');
+  const tiles = words.map(cleanWord);
+  currentSentence = { en: s.en, words, tiles };
+
+  let bank = tiles.map((text, id) => ({ id, text }));
+  do {
+    bank = shuffle(bank.slice());
+  } while (words.length > 1 && bank.every((w, i) => w.id === i));
+  sentenceBank = bank;
+
+  sentenceAnswer = [];
+  sentenceChecked = false;
+  renderSentenceTab();
+}
+
+function addToAnswer(id) {
+  if (sentenceChecked || sentenceAnswer.includes(id)) return;
+  sentenceAnswer.push(id);
+  renderSentenceTab();
+}
+
+function removeFromAnswer(id) {
+  if (sentenceChecked) return;
+  const idx = sentenceAnswer.indexOf(id);
+  if (idx >= 0) sentenceAnswer.splice(idx, 1);
+  renderSentenceTab();
+}
+
+function checkSentence() {
+  if (sentenceAnswer.length !== sentenceBank.length) return;
+  sentenceChecked = true;
+  renderSentenceTab();
+}
+
+function renderSentenceTab() {
+  if (!currentSentence) { nextSentence(); return; }
+
+  $('sentenceEn').textContent = currentSentence.en;
+
+  const answerEl = $('sentenceAnswer');
+  answerEl.innerHTML = '';
+  if (sentenceAnswer.length === 0) {
+    answerEl.innerHTML = '<span class="sentence-answer__placeholder">Klepni na slovo dole…</span>';
+  } else {
+    sentenceAnswer.forEach((id, pos) => {
+      const wrong = sentenceChecked && id !== pos;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'word-pill word-pill--placed' + (wrong ? ' word-pill--wrong' : '');
+      btn.textContent = currentSentence.tiles[id];
+      btn.disabled = sentenceChecked;
+      if (!sentenceChecked) btn.addEventListener('click', () => removeFromAnswer(id));
+      answerEl.appendChild(btn);
+    });
+  }
+
+  const bankEl = $('sentenceBank');
+  bankEl.innerHTML = '';
+  sentenceBank.forEach(w => {
+    const used = sentenceAnswer.includes(w.id);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'word-pill';
+    btn.textContent = w.text;
+    btn.disabled = used;
+    if (!used) btn.addEventListener('click', () => addToAnswer(w.id));
+    bankEl.appendChild(btn);
+  });
+
+  $('sentenceCheckBtn').hidden = sentenceChecked;
+  $('sentenceCheckBtn').disabled = sentenceAnswer.length !== sentenceBank.length;
+  $('sentenceNextBtn').hidden = !sentenceChecked;
+
+  const resultEl = $('sentenceResult');
+  if (!sentenceChecked) {
+    resultEl.hidden = true;
+  } else {
+    resultEl.hidden = false;
+    const allCorrect = sentenceAnswer.every((id, pos) => id === pos);
+    resultEl.dataset.ok = allCorrect ? 'true' : 'false';
+    $('sentenceResultBadge').textContent = allCorrect ? 'Správně! 🎉' : 'Špatně';
+    const correctEl = $('sentenceResultCorrect');
+    if (allCorrect) {
+      correctEl.hidden = true;
+    } else {
+      correctEl.hidden = false;
+      correctEl.innerHTML = 'Správná odpověď: ' + currentSentence.words.map((w, i) => {
+        const wrong = sentenceAnswer[i] !== i;
+        return wrong ? `<b>${escapeHtml(w)}</b>` : escapeHtml(w);
+      }).join(' ');
+    }
+  }
+}
+
 // ===== Tabs =====
 let currentTab = 'learn';
 function switchTab(name) {
@@ -1284,6 +1436,10 @@ function switchTab(name) {
     pickCard();
     renderFlashcard();
     renderTopbar();
+  }
+  if (name === 'sentences') {
+    if (!currentSentence) nextSentence();
+    else renderSentenceTab();
   }
 }
 
@@ -1405,6 +1561,10 @@ function bind() {
 
   // search
   $('searchInput').addEventListener('input', renderCards);
+
+  // sentences tab
+  $('sentenceCheckBtn').addEventListener('click', checkSentence);
+  $('sentenceNextBtn').addEventListener('click', nextSentence);
 
   // keyboard for desktop testing
   document.addEventListener('keydown', (e) => {

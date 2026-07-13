@@ -401,6 +401,7 @@ body:has(.tab--learn.is-active) {
   transition: transform .05s ease, box-shadow .05s ease;
 }
 .btn:active { transform: translate(4px, 4px); box-shadow: 0 0 0 0 var(--line); }
+.btn:disabled { opacity: .5; pointer-events: none; }
 .btn--block { width: 100%; }
 .btn--primary { background: var(--primary); color: #ffffff; }
 .btn--ghost   { background: #ffffff; color: var(--primary-ink); }
@@ -554,11 +555,68 @@ body:has(.tab--learn.is-active) {
 }
 .card-row__meta b { color: var(--primary-ink); font-weight: 400; }
 
+/* ---------- Sentences (Věty) tab ---------- */
+.sentence-stage {
+  margin-top: 18px;
+  display: flex; flex-direction: column; gap: 18px;
+  padding-bottom: 260px; /* leave room for the fixed action bar (word bank + buttons) above the tabbar */
+}
+.sentence-prompt {
+  background: #ffffff;
+  border: var(--border);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+.sentence-prompt__text {
+  font-size: clamp(20px, 6vw, 26px);
+  font-weight: 700;
+  color: var(--primary-ink);
+  line-height: 1.35;
+  margin-top: 14px;
+}
+
+.sentence-answer {
+  min-height: 56px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 10px 4px 16px;
+  border-bottom: 3px dashed var(--line);
+}
+.sentence-answer__placeholder { color: var(--text-mut); font-size: 15px; }
+
+.sentence-bank { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.word-pill {
+  background: #ffffff;
+  border: var(--border);
+  box-shadow: var(--shadow-soft);
+  padding: 10px 14px;
+  font-size: 18px; font-weight: 700;
+  color: var(--primary-ink);
+  transition: transform .05s, box-shadow .05s;
+}
+.word-pill:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 0 0 0 0 var(--line); }
+.word-pill--placed { background: var(--accent-yellow); }
+.word-pill--wrong { color: var(--bad); text-decoration: underline; }
+.sentence-bank .word-pill:disabled { visibility: hidden; }
+.sentence-answer .word-pill:disabled { cursor: default; }
+
+.sentence-result {
+  padding: 14px 16px;
+  border: var(--border);
+  box-shadow: var(--shadow);
+  background: #ffffff;
+}
+.sentence-result[data-ok="true"]  { background: #d8f1e1; border-color: var(--good); }
+.sentence-result[data-ok="false"] { background: #fde0e0; border-color: var(--bad); }
+.sentence-result__badge { font-weight: 800; font-size: 18px; color: var(--primary-ink); }
+.sentence-result__correct { margin-top: 10px; font-size: 16px; color: var(--text-dim); line-height: 1.4; }
+.sentence-result__correct b { color: var(--bad); text-decoration: underline; }
+
 /* ---------- Tabbar ---------- */
 .tabbar {
   position: fixed;
   left: 0; right: 0; bottom: 0;
-  display: grid; grid-template-columns: 1fr 1fr;
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
   background: #ffffff;
   border-top: var(--border);
   padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
