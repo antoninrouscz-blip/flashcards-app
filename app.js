@@ -511,14 +511,14 @@ const SEED_SENTENCES = [
   { en: 'She is reading a good book.', cs: 'Ona čte dobrou knihu.' },
   { en: 'We are going to the mountains tomorrow.', cs: 'Zítra jedeme do hor.' },
   { en: 'Where is the nearest pharmacy?', cs: 'Kde je nejbližší lékárna?' },
-  { en: 'The weather is very cold today.', cs: 'Počasí je dnes velmi studené.' },
+  { en: 'The weather is very cold today.', cs: 'Počasí je dnes velmi studené.', alts: ['Dnes je počasí velmi studené.'] },
   { en: 'My grandmother makes delicious dumplings.', cs: 'Moje babička dělá výborné knedlíky.' },
-  { en: 'Can you help me, please?', cs: 'Můžeš mi prosím pomoct?' },
+  { en: 'Can you help me, please?', cs: 'Můžeš mi prosím pomoct?', alts: ['Můžeš mi pomoct prosím?'] },
   { en: 'The children are playing in the garden.', cs: 'Děti si hrají na zahradě.' },
-  { en: 'I usually drink coffee in the morning.', cs: 'Ráno obvykle piju kávu.' },
-  { en: 'This restaurant is too expensive for us.', cs: 'Tahle restaurace je pro nás moc drahá.' },
+  { en: 'I usually drink coffee in the morning.', cs: 'Ráno obvykle piju kávu.', alts: ['Obvykle ráno piju kávu.', 'Obvykle piju kávu ráno.'] },
+  { en: 'This restaurant is too expensive for us.', cs: 'Tahle restaurace je pro nás moc drahá.', alts: ['Pro nás je tahle restaurace moc drahá.'] },
   { en: 'He never eats meat.', cs: 'On nikdy nejí maso.' },
-  { en: 'We need to buy bread and milk.', cs: 'Musíme koupit chleba a mléko.' },
+  { en: 'We need to buy bread and milk.', cs: 'Musíme koupit chleba a mléko.', alts: ['Musíme koupit mléko a chleba.'] },
   { en: 'Why are you so tired?', cs: 'Proč jsi tak unavený?' },
   { en: 'The train leaves at seven.', cs: 'Vlak odjíždí v sedm hodin.' },
   { en: 'I think this dress is very pretty.', cs: 'Myslím, že tyhle šaty jsou moc hezké.' },
@@ -527,7 +527,7 @@ const SEED_SENTENCES = [
   { en: 'Yesterday I met my old friend.', cs: 'Včera jsem potkal starého kamaráda.' },
   { en: 'The dog is sleeping under the table.', cs: 'Pes spí pod stolem.' },
   { en: 'Next year we are going to Prague.', cs: 'Příští rok pojedeme do Prahy.' },
-  { en: "I don't understand this word.", cs: 'Nerozumím tomuhle slovu.' },
+  { en: "I don't understand this word.", cs: 'Nerozumím tomuhle slovu.', alts: ['Tomuhle slovu nerozumím.'] },
   { en: 'She always helps her sister.', cs: 'Vždycky pomáhá své sestře.' },
   { en: 'How much does this shirt cost?', cs: 'Kolik stojí tahle košile?' },
   { en: 'We were at the theater last week.', cs: 'Minulý týden jsme byli v divadle.' },
@@ -1310,8 +1310,8 @@ function shuffle(arr) {
 
 let sentenceQueue = [];      // shuffled indices into SEED_SENTENCES, consumed in order
 let sentenceQueuePos = 0;
-let currentSentence = null;  // { en, words, tiles } — words = correct, properly written; tiles = same, cleaned for display
-let sentenceBank = [];       // [{ id, text }], shuffled; id = word's correct position
+let currentSentence = null;  // { en, words, tiles, variants } — words = canonical sentence; tiles = same, cleaned for display
+let sentenceBank = [];       // [{ id, text }], shuffled; id = word's correct position in the canonical sentence
 let sentenceAnswer = [];     // ids in the order the user clicked them
 let sentenceChecked = false;
 
@@ -1319,6 +1319,34 @@ let sentenceChecked = false;
 // word can't be spotted at a glance — the real spelling only shows in the answer key.
 function cleanWord(w) {
   return w.replace(/[.,!?:;]+$/, '').toLowerCase();
+}
+
+// Czech word order is flexible — some sentences have more than one correct
+// arrangement (declared via `alts` in SEED_SENTENCES). Map an alternate's own
+// words back onto the canonical word ids so we can check against it too.
+function buildPerm(variantWords, canonicalWords) {
+  const used = new Array(canonicalWords.length).fill(false);
+  const perm = [];
+  for (const vw of variantWords) {
+    const target = cleanWord(vw);
+    const idx = canonicalWords.findIndex((cw, i) => !used[i] && cleanWord(cw) === target);
+    if (idx === -1) return null; // alt's words don't match the canonical set — skip it
+    used[idx] = true;
+    perm.push(idx);
+  }
+  return perm;
+}
+
+// Picks whichever accepted variant (canonical or alt) best matches what the
+// user has placed so far, for wrong-word marking and the reference sentence.
+function bestSentenceVariant() {
+  let best = currentSentence.variants[0];
+  let bestScore = -1;
+  for (const v of currentSentence.variants) {
+    const score = v.perm.reduce((acc, id, pos) => acc + (sentenceAnswer[pos] === id ? 1 : 0), 0);
+    if (score > bestScore) { bestScore = score; best = v; }
+  }
+  return best;
 }
 
 function nextSentence() {
@@ -1329,7 +1357,15 @@ function nextSentence() {
   const s = SEED_SENTENCES[sentenceQueue[sentenceQueuePos++]];
   const words = s.cs.split(' ');
   const tiles = words.map(cleanWord);
-  currentSentence = { en: s.en, words, tiles };
+
+  const variants = [{ perm: words.map((_, i) => i), words }];
+  for (const altStr of s.alts || []) {
+    const altWords = altStr.split(' ');
+    const perm = buildPerm(altWords, words);
+    if (perm) variants.push({ perm, words: altWords });
+    else console.warn('Sentence alt does not match word set:', s.cs, altStr);
+  }
+  currentSentence = { en: s.en, words, tiles, variants };
 
   let bank = tiles.map((text, id) => ({ id, text }));
   do {
@@ -1366,13 +1402,18 @@ function renderSentenceTab() {
 
   $('sentenceEn').textContent = currentSentence.en;
 
+  // When checked, compare against whichever accepted variant (canonical or
+  // alt) best matches the user's answer — Czech word order is flexible, so
+  // more than one arrangement can be correct.
+  const matchVariant = sentenceChecked ? bestSentenceVariant() : null;
+
   const answerEl = $('sentenceAnswer');
   answerEl.innerHTML = '';
   if (sentenceAnswer.length === 0) {
     answerEl.innerHTML = '<span class="sentence-answer__placeholder">Klepni na slovo dole…</span>';
   } else {
     sentenceAnswer.forEach((id, pos) => {
-      const wrong = sentenceChecked && id !== pos;
+      const wrong = sentenceChecked && id !== matchVariant.perm[pos];
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'word-pill word-pill--placed' + (wrong ? ' word-pill--wrong' : '');
@@ -1405,7 +1446,7 @@ function renderSentenceTab() {
     resultEl.hidden = true;
   } else {
     resultEl.hidden = false;
-    const allCorrect = sentenceAnswer.every((id, pos) => id === pos);
+    const allCorrect = currentSentence.variants.some(v => v.perm.every((id, pos) => sentenceAnswer[pos] === id));
     resultEl.dataset.ok = allCorrect ? 'true' : 'false';
     $('sentenceResultBadge').textContent = allCorrect ? 'Správně! 🎉' : 'Špatně';
     const correctEl = $('sentenceResultCorrect');
@@ -1413,8 +1454,8 @@ function renderSentenceTab() {
       correctEl.hidden = true;
     } else {
       correctEl.hidden = false;
-      correctEl.innerHTML = 'Správná odpověď: ' + currentSentence.words.map((w, i) => {
-        const wrong = sentenceAnswer[i] !== i;
+      correctEl.innerHTML = 'Správná odpověď: ' + matchVariant.words.map((w, i) => {
+        const wrong = sentenceAnswer[i] !== matchVariant.perm[i];
         return wrong ? `<b>${escapeHtml(w)}</b>` : escapeHtml(w);
       }).join(' ');
     }
