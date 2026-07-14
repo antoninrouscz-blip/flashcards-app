@@ -691,9 +691,11 @@ function setSyncStatus(status) {
 }
 
 // ===== Anki-style SM-2 scheduling =====
-// Default deck options matching Anki's "Default" preset.
+// Deck options based on Anki's "Default" preset, with one deliberate
+// deviation: a single learning step, so the first "Umím" graduates the
+// card straight to review instead of requiring a second same-day pass.
 const ANKI = {
-  learnSteps:   [1, 10],   // minutes, learning phase (new cards)
+  learnSteps:   [1],       // minutes, learning phase (new cards) — one step: Umím graduates immediately
   relearnSteps: [10],      // minutes, relearning phase (after a lapse)
   graduatingInterval: 1,   // days, when card graduates from learning
   startingEase: 2.5,       // 250%
@@ -841,26 +843,36 @@ function handleAgainInSession(card) {
 function previewInterval(card, grade) {
   if (grade === 0) return 'na konec';
   const c = { ...card };
+  // scheduleCard also bumps state.todayNewCount as a side effect when a
+  // card graduates from 'new' — undo that here since this is a dry run.
+  const savedNewCount = state.todayNewCount;
   scheduleCard(c, grade);
-  return formatDueDelta(c.due - Date.now());
+  state.todayNewCount = savedNewCount;
+  return formatDueDelta(c.due);
 }
 
-function formatDueDelta(ms) {
+// Formats an absolute due timestamp relative to now. Uses calendar-day
+// boundaries (not raw ms) to decide same-day vs. future-day, so a card
+// graduating to tomorrow always reads "zítra" even late in the evening
+// when only a few hours separate now from midnight.
+function formatDueDelta(due) {
+  const now = Date.now();
+  const ms = due - now;
   if (ms <= 0) return 'teď';
-  if (ms < 60 * MIN) {
-    const m = Math.max(1, Math.round(ms / MIN));
-    return m + ' min';
-  }
-  if (ms < 24 * 60 * MIN) {
+  const dayDiff = Math.round((startOfDay(due) - startOfDay(now)) / DAY);
+  if (dayDiff <= 0) {
+    if (ms < 60 * MIN) {
+      const m = Math.max(1, Math.round(ms / MIN));
+      return m + ' min';
+    }
     const h = Math.round(ms / (60 * MIN));
     return h + ' h';
   }
-  const days = Math.round(ms / DAY);
-  if (days === 1) return '1 den';
-  if (days < 5) return days + ' dny';
-  if (days < 30) return days + ' dní';
-  if (days < 365) return Math.round(days / 30) + ' měs';
-  return Math.round(days / 365) + ' let';
+  if (dayDiff === 1) return 'zítra';
+  if (dayDiff < 5) return dayDiff + ' dny';
+  if (dayDiff < 30) return dayDiff + ' dní';
+  if (dayDiff < 365) return Math.round(dayDiff / 30) + ' měs';
+  return Math.round(dayDiff / 365) + ' let';
 }
 
 function dueCards() {
@@ -1214,7 +1226,7 @@ function renderCards() {
     const li = document.createElement('li');
     const klass = classifyCard(c);
     const delta = c.due - now;
-    const dueLabel = delta <= 0 ? 'dnes' : formatDueDelta(delta);
+    const dueLabel = delta <= 0 ? 'dnes' : formatDueDelta(c.due);
     li.dataset.id = c.id;
     li.innerHTML = `
       <span class="card-row__bullet s-${klass}"></span>
@@ -1263,7 +1275,12 @@ function openDetail(cardId) {
   $('detEase').textContent = (c.ease * 100).toFixed(0) + ' %';
 
   const delta = c.due - Date.now();
-  $('detDue').textContent = delta <= 0 ? 'Splatná' : 'za ' + formatDueDelta(delta);
+  if (delta <= 0) {
+    $('detDue').textContent = 'Splatná';
+  } else {
+    const rel = formatDueDelta(c.due);
+    $('detDue').textContent = rel === 'zítra' ? rel : 'za ' + rel;
+  }
 
   $('detReps').textContent = c.reps;
   $('detLapses').textContent = c.lapses;

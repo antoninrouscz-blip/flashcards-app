@@ -45,7 +45,7 @@ Karta:
 
 ## SM-2 scheduling (`app.js`)
 
-Konstanty v objektu `ANKI` (kopie Anki "Default" presetu): `learnSteps [1,10] min`, `relearnSteps [10] min`, `graduatingInterval 1 den`, ease 2.5 (min 1.3), hardMultiplier 1.2, po lapse interval resetuje na 0 %.
+Konstanty v objektu `ANKI` vychází z Anki "Default" presetu, s jednou schválnou odchylkou: `learnSteps [1] min` — jediný krok, takže první **Umím** na nové kartě rovnou graduje do review (na rozdíl od Anki, kde by šla přes 1min→10min). `relearnSteps [10] min`, `graduatingInterval 1 den`, ease 2.5 (min 1.3), hardMultiplier 1.2, po lapse interval resetuje na 0 %.
 
 Hodnocení (grade): **0 = Neumím (Again)**, **1 = Meh (Hard)**, **2 = Umím (Good)**. Easy (4. tlačítko) není v UI.
 
