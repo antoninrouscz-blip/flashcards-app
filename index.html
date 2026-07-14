@@ -215,6 +215,22 @@
         <button data-preset="30">30</button>
         <button data-preset="50">50</button>
       </div>
+
+      <h2 class="modal__title modal__title--section" id="newLimitTitle">Limit nových karet</h2>
+      <p class="modal__sub">Kolik nových karet nejvýš za den?</p>
+      <div class="stepper">
+        <button class="stepper__btn" id="newLimitMinus" aria-label="Snížit">−</button>
+        <div class="stepper__value"><span id="newLimitEditValue">20</span><span class="stepper__unit">karet/den</span></div>
+        <button class="stepper__btn" id="newLimitPlus" aria-label="Zvýšit">+</button>
+      </div>
+      <div class="preset">
+        <button data-newlimit-preset="10">10</button>
+        <button data-newlimit-preset="20">20</button>
+        <button data-newlimit-preset="30">30</button>
+        <button data-newlimit-preset="50">50</button>
+        <button data-newlimit-preset="100">100</button>
+      </div>
+
       <div class="modal__actions">
         <button class="btn btn--ghost" data-close>Zrušit</button>
         <button class="btn btn--primary" id="goalSave">Uložit</button>
@@ -334,7 +350,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
 
-  <script src="app.js?v=22"></script>
+  <script src="app.js?v=24"></script>
   <script src="cloud.js?v=2"></script>
 
   <!-- Register service worker for offline app shell -->

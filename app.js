@@ -548,6 +548,10 @@ function defaultState() {
     lastGoalReachedDay: 0,
     todayKey: today,
     todayDone: 0,
+    // Anki-style daily new-card cap: how many new cards may enter
+    // learning today, and how many have already been introduced.
+    newCardsPerDay: 20,
+    todayNewCount: 0,
     // FIFO queue of card IDs that were graded "Neumím" today
     // and need to be re-shown within the same session
     sessionRetry: [],
@@ -598,6 +602,8 @@ function loadState() {
     }
     if (!Array.isArray(s.sessionRetry)) s.sessionRetry = [];
     if (typeof s.typingMode !== 'boolean') s.typingMode = false;
+    if (typeof s.newCardsPerDay !== 'number') s.newCardsPerDay = 20;
+    if (typeof s.todayNewCount !== 'number') s.todayNewCount = 0;
     // Merge in any new seed cards added since this deck was saved.
     // Dedup by Czech word (back), so existing cards keep their progress.
     const norm = w => String(w).trim().toLowerCase();
@@ -625,6 +631,7 @@ function loadState() {
       }
       s.todayKey = today;
       s.todayDone = 0;
+      s.todayNewCount = 0;
       s.sessionRetry = [];
     }
     return s;
@@ -711,6 +718,7 @@ function scheduleCard(card, grade) {
   if (card.state === 'new') {
     card.state = 'learning';
     card.step = 0;
+    state.todayNewCount += 1;
   }
 
   if (card.state === 'learning') {
@@ -818,6 +826,7 @@ function handleAgainInSession(card) {
   } else if (card.state === 'new') {
     card.state = 'learning';
     card.step = 0;
+    state.todayNewCount += 1;
   }
 
   // Park the card so it doesn't appear in the regular due queue —
@@ -856,7 +865,7 @@ function formatDueDelta(ms) {
 
 function dueCards() {
   const now = Date.now();
-  return state.cards
+  const list = state.cards
     .filter(c => c.due <= now)
     .sort((a, b) => {
       // Anki order: learning/relearning by exact due time, then new, then review
@@ -867,6 +876,14 @@ function dueCards() {
       // within a group: due time first, then stable random key (not add order)
       return a.due - b.due || (a.ord ?? 0) - (b.ord ?? 0) || a.id - b.id;
     });
+  // Cap how many "new" cards may appear today (Anki-style new-cards/day limit).
+  // Already-introduced new cards are counted in todayNewCount as soon as they're graded.
+  let newSlots = Math.max(0, state.newCardsPerDay - state.todayNewCount);
+  return list.filter(c => {
+    if (c.state !== 'new') return true;
+    if (newSlots > 0) { newSlots -= 1; return true; }
+    return false;
+  });
 }
 
 function classifyCard(c) {
@@ -888,6 +905,22 @@ function stateLabel(c) {
 // ===== UI =====
 const $ = (id) => document.getElementById(id);
 
+// Cards due today or earlier (not just due at this exact moment), with the
+// "new" ones capped at today's remaining new-card allowance — this mirrors
+// what dueCards() will actually surface, so the "Na dnes" KPI matches reality.
+function todayCardsCapped() {
+  const todayEnd = startOfDay() + DAY;
+  const list = state.cards
+    .filter(c => c.due < todayEnd)
+    .sort((a, b) => a.due - b.due);
+  let newSlots = Math.max(0, state.newCardsPerDay - state.todayNewCount);
+  return list.filter(c => {
+    if (c.state !== 'new') return true;
+    if (newSlots > 0) { newSlots -= 1; return true; }
+    return false;
+  });
+}
+
 function renderTopbar() {
   $('streakValue').textContent = state.streak;
   $('goalProgress').textContent = state.todayDone;
@@ -895,9 +928,7 @@ function renderTopbar() {
   const pct = Math.min(100, (state.todayDone / state.goal) * 100);
   $('goalBar').style.width = pct + '%';
 
-  // Cards due today or earlier (not just due at this exact moment), and how many of those are new
-  const todayEnd = startOfDay() + DAY;
-  const dueToday = state.cards.filter(c => c.due < todayEnd);
+  const dueToday = todayCardsCapped();
   const newToday = dueToday.filter(c => c.state === 'new').length;
   $('dueTodayValue').textContent = dueToday.length;
   $('dueTodayNew').textContent = newToday > 0 ? `(${newToday} nových)` : '';
@@ -913,8 +944,7 @@ function fmtDueDay(ts) {
 }
 
 function openDueTodayModal() {
-  const todayEnd = startOfDay() + DAY;
-  const due = state.cards.filter(c => c.due < todayEnd).sort((a, b) => a.due - b.due);
+  const due = todayCardsCapped();
   const ul = $('dueTodayList');
   ul.innerHTML = '';
   if (due.length === 0) {
@@ -1490,10 +1520,14 @@ function closeModal(id) { $(id).hidden = true; }
 
 // ===== Goal modal =====
 let tempGoal = state.goal;
+let tempNewLimit = state.newCardsPerDay;
 function openGoalModal() {
   tempGoal = state.goal;
+  tempNewLimit = state.newCardsPerDay;
   $('goalEditValue').textContent = tempGoal;
+  $('newLimitEditValue').textContent = tempNewLimit;
   updatePresets();
+  updateNewLimitPresets();
   openModal('goalModal');
 }
 function setTempGoal(v) {
@@ -1502,8 +1536,18 @@ function setTempGoal(v) {
   updatePresets();
 }
 function updatePresets() {
-  document.querySelectorAll('.preset button').forEach(b => {
+  document.querySelectorAll('.preset button[data-preset]').forEach(b => {
     b.classList.toggle('is-active', parseInt(b.dataset.preset, 10) === tempGoal);
+  });
+}
+function setTempNewLimit(v) {
+  tempNewLimit = Math.max(0, Math.min(500, v));
+  $('newLimitEditValue').textContent = tempNewLimit;
+  updateNewLimitPresets();
+}
+function updateNewLimitPresets() {
+  document.querySelectorAll('.preset button[data-newlimit-preset]').forEach(b => {
+    b.classList.toggle('is-active', parseInt(b.dataset.newlimitPreset, 10) === tempNewLimit);
   });
 }
 
@@ -1557,15 +1601,23 @@ function bind() {
   $('dueTodayBtn').addEventListener('click', openDueTodayModal);
   $('goalMinus').addEventListener('click', () => setTempGoal(tempGoal - 1));
   $('goalPlus').addEventListener('click', () => setTempGoal(tempGoal + 1));
-  document.querySelectorAll('.preset button').forEach(b => {
+  document.querySelectorAll('.preset button[data-preset]').forEach(b => {
     b.addEventListener('click', () => setTempGoal(parseInt(b.dataset.preset, 10)));
+  });
+  $('newLimitMinus').addEventListener('click', () => setTempNewLimit(tempNewLimit - 1));
+  $('newLimitPlus').addEventListener('click', () => setTempNewLimit(tempNewLimit + 1));
+  document.querySelectorAll('.preset button[data-newlimit-preset]').forEach(b => {
+    b.addEventListener('click', () => setTempNewLimit(parseInt(b.dataset.newlimitPreset, 10)));
   });
   $('goalSave').addEventListener('click', () => {
     state.goal = tempGoal;
+    state.newCardsPerDay = tempNewLimit;
     save();
     renderTopbar();
+    pickCard();
+    renderFlashcard();
     closeModal('goalModal');
-    toast('Cíl uložen: ' + tempGoal + ' karet/den');
+    toast('Uloženo: ' + tempGoal + ' karet/den, ' + tempNewLimit + ' nových/den');
   });
 
   // add card modal
